@@ -86,7 +86,7 @@ obj/msys2/Release/src/ofApp.o: src/ofApp.cpp src/ofApp.h \
  ../../../libs/openFrameworks/video/ofVideoPlayer.h \
  ../../../libs/openFrameworks/3d/of3dUtils.h \
  ../../../libs/openFrameworks/3d/ofCamera.h \
- ../../../libs/openFrameworks/3d/ofEasyCam.h \
+ ../../../libs/openFrameworks/3d/ofEasyCam.h src/PlateCandidateScorer.h \
  C:/msys64/mingw64/include/opencv5/opencv2/opencv.hpp \
  C:/msys64/mingw64/include/opencv5/opencv2/opencv_modules.hpp \
  C:/msys64/mingw64/include/opencv5/opencv2/core.hpp \
@@ -295,6 +295,7 @@ src/ofApp.h:
 ../../../libs/openFrameworks/3d/of3dUtils.h:
 ../../../libs/openFrameworks/3d/ofCamera.h:
 ../../../libs/openFrameworks/3d/ofEasyCam.h:
+src/PlateCandidateScorer.h:
 C:/msys64/mingw64/include/opencv5/opencv2/opencv.hpp:
 C:/msys64/mingw64/include/opencv5/opencv2/opencv_modules.hpp:
 C:/msys64/mingw64/include/opencv5/opencv2/core.hpp:

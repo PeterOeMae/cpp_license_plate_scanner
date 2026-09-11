@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ofMain.h"
+#include "PlateCandidateScorer.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/geometry.hpp>
 
@@ -28,15 +29,21 @@ public:
 
     void drawImageInFrame(ofImage &image, float x, float y, float frameSize);
 
+	PlateCandidateScorer plateScorer;
+
     ofImage selectedImage;
     ofImage grayPreview;
     ofImage blurredPreview;
     ofImage edgePreview;
 
+	cv::Mat colorImage;
     cv::Mat grayImage;
     cv::Mat blurredImage;
     cv::Mat edgeImage;
 	std::vector<cv::Rect> candidateBoxes;
+
+	cv::Rect bestPlateBox;
+	bool plateFound = false;
 
     bool imageLoaded = false;
     std::string selectedFilename;

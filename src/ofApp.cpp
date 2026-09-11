@@ -46,6 +46,19 @@ void ofApp::draw() {
 
             ofDrawRectangle(x, y, w, h);
         }
+        
+        if (plateFound) {
+
+            float x = offsetX + bestPlateBox.x * imageScale;
+            float y = offsetY + bestPlateBox.y * imageScale;
+            float w = bestPlateBox.width * imageScale;
+            float h = bestPlateBox.height * imageScale;
+
+            ofSetColor(0, 255, 0);
+            ofSetLineWidth(3);
+            ofDrawRectangle(x, y, w, h);
+            ofSetLineWidth(1);
+        }
 
         ofFill();
         ofSetColor(255);
@@ -111,7 +124,7 @@ void ofApp::keyPressed(int key) {
 
                 ofPixels &pixels = selectedImage.getPixels();
 
-                cv::Mat colorImage(selectedImage.getHeight(), selectedImage.getWidth(), CV_8UC3, pixels.getData());
+                colorImage = cv::Mat(selectedImage.getHeight(), selectedImage.getWidth(), CV_8UC3, pixels.getData());
 
                 cv::cvtColor(colorImage, grayImage, cv::COLOR_RGB2GRAY);
                 grayPreview.setFromPixels(grayImage.data, grayImage.cols, grayImage.rows, OF_IMAGE_GRAYSCALE);
@@ -126,9 +139,9 @@ void ofApp::keyPressed(int key) {
                 std::vector<std::vector<cv::Point>> contours;
                 cv::findContours(edgeImage, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_SIMPLE);
                 for (const auto &contour : contours) {
+
                     cv::Rect box = cv::boundingRect(contour);
-                    candidateBoxes.push_back(box);
-                    
+
                     float aspectRatio = static_cast<float>(box.width) / box.height;
                     int area = box.width * box.height;
 
@@ -139,6 +152,20 @@ void ofApp::keyPressed(int key) {
                         area > 1500) {
 
                         candidateBoxes.push_back(box);
+                    }
+                }
+
+                plateFound = false;
+                float bestScore = -1.0f;
+
+                for (const auto &box : candidateBoxes) {
+
+                    float score = plateScorer.score(box, edgeImage, colorImage, selectedImage.getWidth(), selectedImage.getHeight());
+
+                    if (!plateFound || score > bestScore) {
+                        bestScore = score;
+                        bestPlateBox = box;
+                        plateFound = true;
                     }
                 }
 
