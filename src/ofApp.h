@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <opencv2/geometry.hpp>
 #include "PlateOCR.h"
+#include "PlateStraightener.h"
 
 class ofApp : public ofBaseApp {
 
@@ -31,7 +32,7 @@ public:
     void drawImageInFrame(ofImage &image, float x, float y, float frameSize);
 
 	PlateCandidateScorer plateScorer;
-
+    PlateStraightener plateStraightener;
     PlateOCR plateOCR;
     std::string detectedText;
 
@@ -52,6 +53,9 @@ public:
     cv::Mat plateOtsu;
     cv::Mat plateAdaptive;
     cv::Mat plateInverted;
+
+    cv::Mat plateStraight;
+    ofImage plateStraightPreview;
 
     ofImage platePreview;
     ofImage plateGrayPreview;

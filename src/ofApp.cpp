@@ -56,16 +56,18 @@ void ofApp::draw() {
 
             float plateHeight = plateWidth * platePreview.getHeight() / platePreview.getWidth();
 
-            platePreview.draw(plateX, plateY, plateWidth, plateHeight);
-            plateGrayPreview.draw(plateX, plateY + plateHeight + plateSpacing, plateWidth, plateHeight);
-            plateOtsuPreview.draw(plateX, plateY + (plateHeight + plateSpacing) * 2, plateWidth, plateHeight);
-            plateAdaptivePreview.draw(plateX, plateY + (plateHeight + plateSpacing) * 3, plateWidth, plateHeight);
-            plateInvertedPreview.draw(plateX, plateY + (plateHeight + plateSpacing) * 4, plateWidth, plateHeight);
+            platePreview.draw(plateX - 300, plateY, plateWidth, plateHeight);
+            plateGrayPreview.draw(plateX - 300, plateY + plateHeight + plateSpacing, plateWidth, plateHeight);
+            plateOtsuPreview.draw(plateX - 300, plateY + (plateHeight + plateSpacing) * 2, plateWidth, plateHeight);
+            plateAdaptivePreview.draw(plateX,  plateY, plateWidth, plateHeight);
+            plateInvertedPreview.draw(plateX, plateY + plateHeight + plateSpacing, plateWidth, plateHeight);
+            plateStraightPreview.draw(plateX, plateY + (plateHeight + plateSpacing) * 2, plateWidth, plateHeight);
         }
 
         ofFill();
         ofSetColor(255);
 
+        ofDrawBitmapString("OCR from straightened plate:", 20, 370);
         ofDrawBitmapString("Otsu: " + resultOtsu, 20, 390);
         ofDrawBitmapString("Adaptive: " + resultAdaptive, 20, 410);
         ofDrawBitmapString("Inverted: " + resultInverted, 20, 430);
@@ -194,37 +196,35 @@ void ofApp::keyPressed(int key) {
 
                 if (plateFound) {
 
-    // CROP
-    plateCrop = colorImage(bestPlateBox).clone();
+                    // CROP
+                    plateCrop = colorImage(bestPlateBox).clone();
 
-    // GRAYSCALE
-    cv::cvtColor(plateCrop, plateGray, cv::COLOR_RGB2GRAY);
+                    // STRAIGHTEN
+                    plateStraight = plateStraightener.straighten(plateCrop);
 
-    // PREVIEWS BEFORE CLEANING
-    platePreview.setFromPixels(plateCrop.data, plateCrop.cols, plateCrop.rows, OF_IMAGE_COLOR);
-    plateGrayPreview.setFromPixels(plateGray.data, plateGray.cols, plateGray.rows, OF_IMAGE_GRAYSCALE);
+                    // PREVIEWS: ORIGINAL + STRAIGHTENED
+                    platePreview.setFromPixels(plateCrop.data, plateCrop.cols, plateCrop.rows, OF_IMAGE_COLOR);
+                    plateStraightPreview.setFromPixels(plateStraight.data, plateStraight.cols, plateStraight.rows, OF_IMAGE_COLOR);
 
-    // ENLARGE FOR OCR
-    cv::resize(plateGray, plateGray, cv::Size(), 3.0, 3.0, cv::INTER_CUBIC);
+                    // GRAYSCALE
+                    cv::cvtColor(plateStraight, plateGray, cv::COLOR_RGB2GRAY);
+                    plateGrayPreview.setFromPixels(plateGray.data, plateGray.cols, plateGray.rows, OF_IMAGE_GRAYSCALE);
 
-    // SMALL BLUR
-    cv::GaussianBlur(plateGray, plateGray, cv::Size(3, 3), 0);
+                    // PREPARE FOR OCR
+                    cv::resize(plateGray, plateGray, cv::Size(), 3.0, 3.0, cv::INTER_CUBIC);
+                    cv::GaussianBlur(plateGray, plateGray, cv::Size(3, 3), 0);
 
-    // OTSU
-    cv::threshold(plateGray, plateOtsu, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
-
-    // ADAPTIVE
-    cv::adaptiveThreshold(plateGray, plateAdaptive, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 31, 11);
-
-                    // INVERTED OTSU
+                    // CREATE OCR VERSIONS
+                    cv::threshold(plateGray, plateOtsu, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+                    cv::adaptiveThreshold(plateGray, plateAdaptive, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 31, 11);
                     cv::bitwise_not(plateOtsu, plateInverted);
 
-                    // PREVIEWS
+                    // PREVIEWS: OCR VERSIONS
                     plateOtsuPreview.setFromPixels(plateOtsu.data, plateOtsu.cols, plateOtsu.rows, OF_IMAGE_GRAYSCALE);
                     plateAdaptivePreview.setFromPixels(plateAdaptive.data, plateAdaptive.cols, plateAdaptive.rows, OF_IMAGE_GRAYSCALE);
                     plateInvertedPreview.setFromPixels(plateInverted.data, plateInverted.cols, plateInverted.rows, OF_IMAGE_GRAYSCALE);
 
-                    // OCR ALL THREE
+                    // OCR
                     if (ocrReady) {
                         resultOtsu = plateOCR.recognize(plateOtsu);
                         resultAdaptive = plateOCR.recognize(plateAdaptive);
@@ -235,12 +235,11 @@ void ofApp::keyPressed(int key) {
                         resultInverted = "OCR not available";
                     }
 
-                    // PRINT RESULTS TO TERMINAL
+                    // TERMINAL OUTPUT
                     std::cout << "Otsu: " << resultOtsu << std::endl;
                     std::cout << "Adaptive: " << resultAdaptive << std::endl;
                     std::cout << "Inverted: " << resultInverted << std::endl;
                 }
-
 
                 imageLoaded = true;
             }
