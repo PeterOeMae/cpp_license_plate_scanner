@@ -2,7 +2,7 @@
 
 //--------------------------------------------------------------
 void ofApp::setup() {
-
+    ocrReady = plateOCR.setup();
 }
 
 //--------------------------------------------------------------
@@ -49,24 +49,45 @@ void ofApp::draw() {
         
         if (plateFound) {
 
-            float x = offsetX + bestPlateBox.x * imageScale;
-            float y = offsetY + bestPlateBox.y * imageScale;
-            float w = bestPlateBox.width * imageScale;
-            float h = bestPlateBox.height * imageScale;
+            float plateX = startX + (frameSize + spacing) * 3;
+            float plateY = startY + frameSize + 20.0f;
+            float plateWidth = 250.0f;
+            float plateSpacing = 12.0f;
 
-            ofSetColor(0, 255, 0);
-            ofSetLineWidth(3);
-            ofDrawRectangle(x, y, w, h);
-            ofSetLineWidth(1);
+            float plateHeight = plateWidth * platePreview.getHeight() / platePreview.getWidth();
+
+            platePreview.draw(plateX, plateY, plateWidth, plateHeight);
+            plateGrayPreview.draw(plateX, plateY + plateHeight + plateSpacing, plateWidth, plateHeight);
+            plateOtsuPreview.draw(plateX, plateY + (plateHeight + plateSpacing) * 2, plateWidth, plateHeight);
+            plateAdaptivePreview.draw(plateX, plateY + (plateHeight + plateSpacing) * 3, plateWidth, plateHeight);
+            plateInvertedPreview.draw(plateX, plateY + (plateHeight + plateSpacing) * 4, plateWidth, plateHeight);
         }
 
         ofFill();
         ofSetColor(255);
 
+        ofDrawBitmapString("Otsu: " + resultOtsu, 20, 390);
+        ofDrawBitmapString("Adaptive: " + resultAdaptive, 20, 410);
+        ofDrawBitmapString("Inverted: " + resultInverted, 20, 430);
+
 
         drawImageInFrame(grayPreview, startX + frameSize + spacing, startY, frameSize);
         drawImageInFrame(blurredPreview, startX + (frameSize + spacing) * 2, startY, frameSize);
         drawImageInFrame(edgePreview, startX + (frameSize + spacing) * 3, startY, frameSize);
+
+        if (plateFound) {
+
+            float plateX = startX + (frameSize + spacing) * 3;
+            float plateY = startY + frameSize + 20.0f;
+            float plateWidth = 250.0f;
+            float plateSpacing = 15.0f;
+
+            float plateHeight = plateWidth * platePreview.getHeight() / platePreview.getWidth();
+
+            platePreview.draw(plateX, plateY, plateWidth, plateHeight);
+            plateGrayPreview.draw(plateX, plateY + plateHeight + plateSpacing, plateWidth, plateHeight);
+            //plateCleanPreview.draw(plateX, plateY + (plateHeight + plateSpacing) * 2, plateWidth, plateHeight);
+        }
 
         float infoY = startY + frameSize + 20.0f;
 
@@ -75,6 +96,8 @@ void ofApp::draw() {
         ofSetColor(255);
         ofDrawBitmapString("Press O to open another image", 20, 20);
         ofDrawBitmapString(info, startX, infoY);
+
+        ofDrawBitmapString("Detected: " + detectedText, 20, 400);
 
     } else {
 
@@ -168,6 +191,56 @@ void ofApp::keyPressed(int key) {
                         plateFound = true;
                     }
                 }
+
+                if (plateFound) {
+
+    // CROP
+    plateCrop = colorImage(bestPlateBox).clone();
+
+    // GRAYSCALE
+    cv::cvtColor(plateCrop, plateGray, cv::COLOR_RGB2GRAY);
+
+    // PREVIEWS BEFORE CLEANING
+    platePreview.setFromPixels(plateCrop.data, plateCrop.cols, plateCrop.rows, OF_IMAGE_COLOR);
+    plateGrayPreview.setFromPixels(plateGray.data, plateGray.cols, plateGray.rows, OF_IMAGE_GRAYSCALE);
+
+    // ENLARGE FOR OCR
+    cv::resize(plateGray, plateGray, cv::Size(), 3.0, 3.0, cv::INTER_CUBIC);
+
+    // SMALL BLUR
+    cv::GaussianBlur(plateGray, plateGray, cv::Size(3, 3), 0);
+
+    // OTSU
+    cv::threshold(plateGray, plateOtsu, 0, 255, cv::THRESH_BINARY + cv::THRESH_OTSU);
+
+    // ADAPTIVE
+    cv::adaptiveThreshold(plateGray, plateAdaptive, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, cv::THRESH_BINARY, 31, 11);
+
+                    // INVERTED OTSU
+                    cv::bitwise_not(plateOtsu, plateInverted);
+
+                    // PREVIEWS
+                    plateOtsuPreview.setFromPixels(plateOtsu.data, plateOtsu.cols, plateOtsu.rows, OF_IMAGE_GRAYSCALE);
+                    plateAdaptivePreview.setFromPixels(plateAdaptive.data, plateAdaptive.cols, plateAdaptive.rows, OF_IMAGE_GRAYSCALE);
+                    plateInvertedPreview.setFromPixels(plateInverted.data, plateInverted.cols, plateInverted.rows, OF_IMAGE_GRAYSCALE);
+
+                    // OCR ALL THREE
+                    if (ocrReady) {
+                        resultOtsu = plateOCR.recognize(plateOtsu);
+                        resultAdaptive = plateOCR.recognize(plateAdaptive);
+                        resultInverted = plateOCR.recognize(plateInverted);
+                    } else {
+                        resultOtsu = "OCR not available";
+                        resultAdaptive = "OCR not available";
+                        resultInverted = "OCR not available";
+                    }
+
+                    // PRINT RESULTS TO TERMINAL
+                    std::cout << "Otsu: " << resultOtsu << std::endl;
+                    std::cout << "Adaptive: " << resultAdaptive << std::endl;
+                    std::cout << "Inverted: " << resultInverted << std::endl;
+                }
+
 
                 imageLoaded = true;
             }

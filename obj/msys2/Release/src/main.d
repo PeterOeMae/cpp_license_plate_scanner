@@ -206,7 +206,8 @@ obj/msys2/Release/src/main.o: src/main.cpp \
  C:/msys64/mingw64/include/opencv5/opencv2/core/utils/logger.defines.hpp \
  C:/msys64/mingw64/include/opencv5/opencv2/core/utils/logtag.hpp \
  C:/msys64/mingw64/include/opencv5/opencv2/geometry/3d.hpp \
- C:/msys64/mingw64/include/opencv5/opencv2/geometry/segment.hpp
+ C:/msys64/mingw64/include/opencv5/opencv2/geometry/segment.hpp \
+ src/PlateOCR.h
 ../../../libs/openFrameworks/ofMain.h:
 ../../../libs/openFrameworks/utils/ofConstants.h:
 ../../../libs/tess2/include/tesselator.h:
@@ -416,3 +417,4 @@ C:/msys64/mingw64/include/opencv5/opencv2/core/utils/logger.defines.hpp:
 C:/msys64/mingw64/include/opencv5/opencv2/core/utils/logtag.hpp:
 C:/msys64/mingw64/include/opencv5/opencv2/geometry/3d.hpp:
 C:/msys64/mingw64/include/opencv5/opencv2/geometry/segment.hpp:
+src/PlateOCR.h:

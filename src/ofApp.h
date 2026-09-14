@@ -4,6 +4,7 @@
 #include "PlateCandidateScorer.h"
 #include <opencv2/opencv.hpp>
 #include <opencv2/geometry.hpp>
+#include "PlateOCR.h"
 
 class ofApp : public ofBaseApp {
 
@@ -31,6 +32,9 @@ public:
 
 	PlateCandidateScorer plateScorer;
 
+    PlateOCR plateOCR;
+    std::string detectedText;
+
     ofImage selectedImage;
     ofImage grayPreview;
     ofImage blurredPreview;
@@ -42,10 +46,29 @@ public:
     cv::Mat edgeImage;
 	std::vector<cv::Rect> candidateBoxes;
 
+    cv::Mat plateCrop;
+    cv::Mat plateGray;
+
+    cv::Mat plateOtsu;
+    cv::Mat plateAdaptive;
+    cv::Mat plateInverted;
+
+    ofImage platePreview;
+    ofImage plateGrayPreview;
+    ofImage plateOtsuPreview;
+    ofImage plateAdaptivePreview;
+    ofImage plateInvertedPreview;
+
+    std::string resultOtsu;
+    std::string resultAdaptive;
+    std::string resultInverted;
+
 	cv::Rect bestPlateBox;
 	bool plateFound = false;
 
     bool imageLoaded = false;
     std::string selectedFilename;
+
+    bool ocrReady = false;
 
 };

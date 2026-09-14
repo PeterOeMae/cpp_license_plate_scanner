@@ -144,5 +144,11 @@ OF_ROOT = ../../..
 PROJECT_CFLAGS += $(shell pkg-config --cflags opencv5)
 PROJECT_LDFLAGS += $(shell pkg-config --libs opencv5)
 
+PROJECT_CFLAGS += $(shell pkg-config --cflags opencv5)
+PROJECT_LDFLAGS += $(shell pkg-config --libs opencv5)
+
+PROJECT_CFLAGS += $(shell pkg-config --cflags tesseract)
+PROJECT_LDFLAGS += $(shell pkg-config --libs tesseract)
+
 # vscode template
 
